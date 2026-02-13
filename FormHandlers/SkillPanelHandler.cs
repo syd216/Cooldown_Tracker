@@ -1,27 +1,24 @@
-﻿using Cooldown_Tracker.UIStates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.UIStates;
 
 namespace Cooldown_Tracker.FormHandlers
 {
     public class SkillPanelHandler
     {
+        KeyUIState _keyUIState;
+
+        // default values
+        int xOffset = 178, yOffset = 198;
+
+        public SkillPanelHandler(KeyUIState keyUIState) 
+        { 
+            _keyUIState = keyUIState;
+        }
+
         // requires currently focused tab page and list of panels in the tab page
         public Panel AddSkill(TabPage tabPage, List<Panel> skillPanels)
         {
             // PANEL
-            int xSpacing = 178;
-            int ySpacing = 200;
-
-            int col = skillPanels.Count / 2;
-            int row = skillPanels.Count % 2;
-
-            Point scrollOffset = tabPage.AutoScrollPosition;
-
             Point final_point = PanelPositioning(tabPage, skillPanels);
 
             Panel panel = new Panel
@@ -35,11 +32,10 @@ namespace Cooldown_Tracker.FormHandlers
             skillPanels.Add(panel);
             // PANEL
 
-            Console.WriteLine(skillPanels.Count);
-
             // TEXT BOXES
             TextBox TB_SkillName = new TextBox
             {
+                Name = "TB_SkillName",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 3),
@@ -48,13 +44,17 @@ namespace Cooldown_Tracker.FormHandlers
 
             TextBox TB_Key = new TextBox
             {
+                Name = "TB_Key",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 32),
             };
+            TB_Key.Tag = panel;
+            _keyUIState.KeyTextBoxes.Add(TB_Key);
 
             TextBox TB_Time = new TextBox
             {
+                Name = "TB_Time",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 61),
@@ -62,6 +62,7 @@ namespace Cooldown_Tracker.FormHandlers
 
             TextBox TB_SFXPath = new TextBox
             {
+                Name = "TB_SFXPath",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 90),
@@ -97,6 +98,8 @@ namespace Cooldown_Tracker.FormHandlers
                 Height = 23,
                 Text = "Set",
             };
+            BTN_SFXPath.Click += BTN_SFXPath_Click;
+            BTN_SFXPath.Tag = TB_SFXPath;
 
             Button BTN_Delete = new Button
             {
@@ -107,11 +110,12 @@ namespace Cooldown_Tracker.FormHandlers
                 Text = "Delete",
             };
             BTN_Delete.Click += BTN_Delete_Click;
-            BTN_Delete.Tag = new SkillPanelContext
+            BTN_Delete.Tag = new ContextSkillPanel
             {
-                CurrentTabPage = tabPage,
-                CurrentPanel = panel,
-                CurrentPanelList = skillPanels
+                ParentTabPage = tabPage,
+                SkillPanel = panel,
+                SkillKeyTextBox = TB_Key,
+                SkillPanelList = skillPanels
             };
             // BUTTONS
 
@@ -127,13 +131,15 @@ namespace Cooldown_Tracker.FormHandlers
             panel.Controls.Add(BTN_SFXPath);
             panel.Controls.Add(BTN_Delete);
 
+            Console.WriteLine(_keyUIState.KeyTextBoxes.Count);
+
             return panel;
         }
 
         private Point PanelPositioning(TabPage tabPage, List<Panel> skillPanels)
         {
-            int xSpacing = 178;
-            int ySpacing = 200;
+            int xSpacing = xOffset;
+            int ySpacing = yOffset;
 
             int col = skillPanels.Count / 2;
             int row = skillPanels.Count % 2;
@@ -149,8 +155,8 @@ namespace Cooldown_Tracker.FormHandlers
 
         private Point PanelRepositioning(TabPage tabPage, Panel panel, List<Panel> skillPanels)
         {
-            int xSpacing = 178;
-            int ySpacing = 200;
+            int xSpacing = xOffset;
+            int ySpacing = yOffset;
 
             int currentIndex = skillPanels.IndexOf(panel); // must be the panel in the updated list
 
@@ -171,17 +177,42 @@ namespace Cooldown_Tracker.FormHandlers
         {
             if (sender is not Button btn) { return; }
 
-            if (btn.Tag is SkillPanelContext context)
+            if (btn.Tag is ContextSkillPanel context)
             {
-                context.CurrentPanelList.Remove(context.CurrentPanel);
-                context.CurrentPanel.Dispose();
+                // remove the current panel from the form and list
+                context.SkillPanelList.Remove(context.SkillPanel);
+                context.SkillPanel.Dispose();
 
-                foreach (Panel p in context.CurrentPanelList)
+                // remove the current text box of this panel from the list
+                _keyUIState.KeyTextBoxes.Remove(context.SkillKeyTextBox);
+
+                foreach (Panel p in context.SkillPanelList)
                 {
                     p.Location = PanelRepositioning(
-                        context.CurrentTabPage,
+                        context.ParentTabPage,
                         p,
-                        context.CurrentPanelList);
+                        context.SkillPanelList);
+                }
+            }
+        }
+
+        private void BTN_SFXPath_Click(object? sender, EventArgs e)
+        {
+            if (sender is not Button btn) { return; }
+
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Select Audio File";
+                ofd.Filter = "Audio Files (*.wav;*.mp3;*.ogg)|*.wav;*.mp3;*.ogg|All Files (*.*)|*.*";
+                ofd.Multiselect = false;
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string filePath = ofd.FileName;
+                    if (btn.Tag is TextBox textBox)
+                    {
+                        textBox.Text = filePath;
+                    }
                 }
             }
         }

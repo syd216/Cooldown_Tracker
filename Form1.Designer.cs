@@ -33,13 +33,11 @@
             label1 = new Label();
             iconTrayCheck = new CheckBox();
             tabControl1 = new TabControl();
-            tabPage1 = new TabPage();
             SaveButton = new Button();
             AddCharacterButton = new Button();
-            button4 = new Button();
+            DeleteCharacterButton = new Button();
             AddSkillButton = new Button();
             panel1.SuspendLayout();
-            tabControl1.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -74,24 +72,12 @@
             // 
             // tabControl1
             // 
-            tabControl1.Controls.Add(tabPage1);
             tabControl1.Location = new Point(12, 12);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new Size(553, 426);
             tabControl1.TabIndex = 1;
-            // 
-            // tabPage1
-            // 
-            tabPage1.AutoScroll = true;
-            tabPage1.BorderStyle = BorderStyle.FixedSingle;
-            tabPage1.Location = new Point(4, 24);
-            tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(545, 398);
-            tabPage1.TabIndex = 0;
-            tabPage1.Tag = "";
-            tabPage1.Text = "tabPage1";
-            tabPage1.UseVisualStyleBackColor = true;
+            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
             // 
             // SaveButton
             // 
@@ -99,30 +85,32 @@
             SaveButton.Name = "SaveButton";
             SaveButton.Size = new Size(217, 23);
             SaveButton.TabIndex = 3;
-            SaveButton.Text = "Save All to Config";
+            SaveButton.Text = "Save All to File";
             SaveButton.UseVisualStyleBackColor = true;
             // 
             // AddCharacterButton
             // 
-            AddCharacterButton.Location = new Point(575, 68);
+            AddCharacterButton.Location = new Point(575, 44);
             AddCharacterButton.Name = "AddCharacterButton";
             AddCharacterButton.Size = new Size(217, 23);
             AddCharacterButton.TabIndex = 4;
             AddCharacterButton.Text = "Add Character";
             AddCharacterButton.UseVisualStyleBackColor = true;
+            AddCharacterButton.Click += AddCharacterButton_Click;
             // 
-            // button4
+            // DeleteCharacterButton
             // 
-            button4.Location = new Point(575, 126);
-            button4.Name = "button4";
-            button4.Size = new Size(217, 23);
-            button4.TabIndex = 6;
-            button4.Text = "Delete This Character";
-            button4.UseVisualStyleBackColor = true;
+            DeleteCharacterButton.Location = new Point(575, 102);
+            DeleteCharacterButton.Name = "DeleteCharacterButton";
+            DeleteCharacterButton.Size = new Size(217, 23);
+            DeleteCharacterButton.TabIndex = 6;
+            DeleteCharacterButton.Text = "Delete This Character";
+            DeleteCharacterButton.UseVisualStyleBackColor = true;
+            DeleteCharacterButton.Click += DeleteCharacterButton_Click;
             // 
             // AddSkillButton
             // 
-            AddSkillButton.Location = new Point(575, 36);
+            AddSkillButton.Location = new Point(575, 12);
             AddSkillButton.Name = "AddSkillButton";
             AddSkillButton.Size = new Size(217, 23);
             AddSkillButton.TabIndex = 7;
@@ -136,7 +124,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(806, 450);
             Controls.Add(AddSkillButton);
-            Controls.Add(button4);
+            Controls.Add(DeleteCharacterButton);
             Controls.Add(AddCharacterButton);
             Controls.Add(SaveButton);
             Controls.Add(tabControl1);
@@ -149,7 +137,6 @@
             Resize += Form1_Resize;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
-            tabControl1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -159,11 +146,10 @@
         private Label label1;
         private CheckBox iconTrayCheck;
         private TabControl tabControl1;
-        private TabPage tabPage1;
         private Button AddButton;
         private Button SaveButton;
         private Button AddCharacterButton;
-        private Button button4;
+        private Button DeleteCharacterButton;
         private Button AddSkillButton;
     }
 }
