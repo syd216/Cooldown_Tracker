@@ -1,10 +1,9 @@
 using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.CS_Utility;
 using Cooldown_Tracker.FormHandlers;
 using Cooldown_Tracker.Properties;
 using Cooldown_Tracker.UIStates;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace Cooldown_Tracker
 {
@@ -14,19 +13,20 @@ namespace Cooldown_Tracker
         private ContextMenuStrip trayMenu;
 
         // classes
-        private readonly SkillPanelHandler _skillPanelHandler;
+        private readonly TabPageUIState _tabPageUIState; // HOLDS ALL TAB PAGE INFORMATION
         private ContextCharacters _contextCharacters;
 
+        private readonly SkillPanelHandler _skillPanelHandler = new SkillPanelHandler();
         private readonly TabPanelHandler _tabPanelHandler = new TabPanelHandler();
-        private readonly TabPageUIState _tabPageUIState = new TabPageUIState();
-        private readonly KeyUIState _keyUIState = new KeyUIState();
+        private readonly SaveToFile _saveToFile = new SaveToFile();
 
-        public Form1()
+        public Form1(TabPageUIState tabPageUIState)
         {
-            //AllocConsole();
+            AllocConsole();
             InitializeComponent();
 
-            _skillPanelHandler = new SkillPanelHandler(_keyUIState);
+            _tabPageUIState = tabPageUIState;
+
             _contextCharacters = new ContextCharacters
             {
                 MainTabControl = tabControl1
@@ -84,13 +84,13 @@ namespace Cooldown_Tracker
         {
             if (_contextCharacters.CurrentTabPage != null && tabControl1.TabCount > 0)
             {
-                List<List<Panel>> list = _tabPageUIState.tabPageSkillPanelList;
-
                 TabPage currentTabPage = _contextCharacters.CurrentTabPage;
+
+                List<Panel> skillPanelList = _tabPageUIState.panelsByTabPageDict[currentTabPage.Name];
 
                 Panel skillPanel = _skillPanelHandler.AddSkill(
                     currentTabPage,
-                    list[tabControl1.SelectedIndex]
+                    skillPanelList
                 );
 
                 currentTabPage.Controls.Add(skillPanel);
@@ -117,16 +117,15 @@ namespace Cooldown_Tracker
             if (tabControl1.TabCount > oldTabCount)
             {
                 int index = tabControl1.SelectedIndex;
-                List<List<Panel>> list = _tabPageUIState.tabPageSkillPanelList;
 
                 // current index is equal to the amount of tabs minus one. Therefore set current tab to the new tab
                 index = tabControl1.TabCount - 1;
                 _contextCharacters.CurrentTabPage = tabControl1.TabPages[index];
 
                 // make sure internal tab list tracker has a new list for panels every time a new tab page is made
-                while (list.Count <= index)
+                while (_tabPageUIState.panelsByTabPageDict.Count <= index)
                 {
-                    list.Add(new List<Panel>());
+                    _tabPageUIState.panelsByTabPageDict.Add(_contextCharacters.CurrentTabPage.Name, new List<Panel>());
                 }
                 //Console.WriteLine($"ADDED: {_contextCharacters.CurrentTabPage.Name}");
             }
@@ -138,20 +137,32 @@ namespace Cooldown_Tracker
             {
                 _contextCharacters.CurrentTabPage = tabControl1.TabPages[tabControl1.SelectedIndex];
             }
-            //Console.WriteLine(tabControl1.SelectedIndex);
         }
 
         private void DeleteCharacterButton_Click(object sender, EventArgs e)
         {
             if (_contextCharacters.CurrentTabPage != null && tabControl1.TabCount > 0)
             {
-                int index = tabControl1.SelectedIndex;
-                tabControl1.TabPages.Remove(_contextCharacters.CurrentTabPage);
-                _tabPageUIState.tabPageSkillPanelList.RemoveAt(index);
+                TabPage targetTabPage = _contextCharacters.CurrentTabPage;
+
+                tabControl1.TabPages.Remove(targetTabPage);
+                _tabPageUIState.panelsByTabPageDict.Remove(targetTabPage.Name);
 
                 Console.WriteLine("after delete: " + tabControl1.TabCount);
-                Console.WriteLine($"after delete @ {index} (LIST): " + _tabPageUIState.tabPageSkillPanelList.Count);
+                Console.WriteLine($"after delete @ (LIST): " + _tabPageUIState.panelsByTabPageDict.Keys.Count);
             }
+        }
+
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            List<TabPage> tabPages = new List<TabPage>();
+
+            foreach (TabPage tp in tabControl1.TabPages)
+            {
+                tabPages.Add(tp);
+            }
+
+            _saveToFile.WriteToFile(tabPages, _tabPageUIState);
         }
     }
 }

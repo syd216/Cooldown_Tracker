@@ -5,15 +5,8 @@ namespace Cooldown_Tracker.FormHandlers
 {
     public class SkillPanelHandler
     {
-        KeyUIState _keyUIState;
-
         // default values
         int xOffset = 178, yOffset = 198;
-
-        public SkillPanelHandler(KeyUIState keyUIState) 
-        { 
-            _keyUIState = keyUIState;
-        }
 
         // requires currently focused tab page and list of panels in the tab page
         public Panel AddSkill(TabPage tabPage, List<Panel> skillPanels)
@@ -49,8 +42,6 @@ namespace Cooldown_Tracker.FormHandlers
                 Height = 23,
                 Location = new Point(3, 32),
             };
-            TB_Key.Tag = panel;
-            _keyUIState.KeyTextBoxes.Add(TB_Key);
 
             TextBox TB_Time = new TextBox
             {
@@ -110,11 +101,16 @@ namespace Cooldown_Tracker.FormHandlers
                 Text = "Delete",
             };
             BTN_Delete.Click += BTN_Delete_Click;
-            BTN_Delete.Tag = new ContextSkillPanel
+
+            // SET CONTEXT CS TO PANEL TAG 
+            panel.Tag = new ContextSkillPanel
             {
                 ParentTabPage = tabPage,
                 SkillPanel = panel,
+                SkillNameTextBox = TB_SkillName,
                 SkillKeyTextBox = TB_Key,
+                SkillTimeTextBox = TB_Time,
+                SkillSFXPathTextBox = TB_SFXPath,
                 SkillPanelList = skillPanels
             };
             // BUTTONS
@@ -130,8 +126,6 @@ namespace Cooldown_Tracker.FormHandlers
 
             panel.Controls.Add(BTN_SFXPath);
             panel.Controls.Add(BTN_Delete);
-
-            Console.WriteLine(_keyUIState.KeyTextBoxes.Count);
 
             return panel;
         }
@@ -177,41 +171,42 @@ namespace Cooldown_Tracker.FormHandlers
         {
             if (sender is not Button btn) { return; }
 
-            if (btn.Tag is ContextSkillPanel context)
+            if (btn.Parent is Panel panel)
             {
-                // remove the current panel from the form and list
-                context.SkillPanelList.Remove(context.SkillPanel);
-                context.SkillPanel.Dispose();
-
-                // remove the current text box of this panel from the list
-                _keyUIState.KeyTextBoxes.Remove(context.SkillKeyTextBox);
-
-                foreach (Panel p in context.SkillPanelList)
+                if (panel.Tag is ContextSkillPanel context)
                 {
-                    p.Location = PanelRepositioning(
-                        context.ParentTabPage,
-                        p,
-                        context.SkillPanelList);
+                    // remove the current panel from the form and list
+                    context.SkillPanelList.Remove(context.SkillPanel);
+                    context.SkillPanel.Dispose();
+
+                    foreach (Panel p in context.SkillPanelList)
+                    {
+                        p.Location = PanelRepositioning(
+                            context.ParentTabPage,
+                            p,
+                            context.SkillPanelList);
+                    }
                 }
             }
         }
 
         private void BTN_SFXPath_Click(object? sender, EventArgs e)
         {
-            if (sender is not Button btn) { return; }
-
-            using (OpenFileDialog ofd = new OpenFileDialog())
+            if (sender is Button btn)
             {
-                ofd.Title = "Select Audio File";
-                ofd.Filter = "Audio Files (*.wav;*.mp3;*.ogg)|*.wav;*.mp3;*.ogg|All Files (*.*)|*.*";
-                ofd.Multiselect = false;
-
-                if (ofd.ShowDialog() == DialogResult.OK)
+                using (OpenFileDialog ofd = new OpenFileDialog())
                 {
-                    string filePath = ofd.FileName;
-                    if (btn.Tag is TextBox textBox)
+                    ofd.Title = "Select Audio File";
+                    ofd.Filter = "Audio Files (*.wav;*.mp3;*.ogg)|*.wav;*.mp3;*.ogg|All Files (*.*)|*.*";
+                    ofd.Multiselect = false;
+
+                    if (ofd.ShowDialog() == DialogResult.OK)
                     {
-                        textBox.Text = filePath;
+                        string filePath = ofd.FileName;
+                        if (btn.Tag is TextBox textBox)
+                        {
+                            textBox.Text = filePath;
+                        }
                     }
                 }
             }

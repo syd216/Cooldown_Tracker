@@ -10,6 +10,6 @@ namespace Cooldown_Tracker.UIStates
     {
         // helper class to contain a list of certain UI elements in each tab page
         // this is a list of a list, so each initial list entry can hold a list of panels (2D)
-        public List<List<Panel>> tabPageSkillPanelList { get; set; } = new();
+        public Dictionary<String, List<Panel>> panelsByTabPageDict { get; set; } = new();
     }
 }

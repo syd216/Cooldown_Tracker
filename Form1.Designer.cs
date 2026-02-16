@@ -87,6 +87,7 @@
             SaveButton.TabIndex = 3;
             SaveButton.Text = "Save All to File";
             SaveButton.UseVisualStyleBackColor = true;
+            SaveButton.Click += SaveButton_Click;
             // 
             // AddCharacterButton
             // 

@@ -5,7 +5,10 @@ namespace Cooldown_Tracker.CS_Contexts
     {
         public required TabPage ParentTabPage { get; set; }
         public required Panel SkillPanel { get; set; }
+        public required TextBox SkillNameTextBox { get; set; }
         public required TextBox SkillKeyTextBox { get; set; }
+        public required TextBox SkillTimeTextBox { get; set; }
+        public required TextBox SkillSFXPathTextBox { get; set; }
         public required List<Panel> SkillPanelList { get; set; }
     }
 }
