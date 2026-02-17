@@ -7,7 +7,7 @@ using NAudio.Wave;
 
 namespace Cooldown_Tracker
 {
-    public class KeyHook
+    public class KeyHook_SoundPlay
     {
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
@@ -21,7 +21,7 @@ namespace Cooldown_Tracker
         // SOUND HANDLING
         private Dictionary<String, Task> _activeDelayedTasks = new Dictionary<string, Task>();
 
-        public KeyHook(TabPageUIState tabUIState)
+        public KeyHook_SoundPlay(TabPageUIState tabUIState)
         {
             _tabPageUIState = tabUIState;
 

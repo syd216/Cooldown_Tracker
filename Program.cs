@@ -14,7 +14,7 @@ namespace Cooldown_Tracker
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            KeyHook keyHook = new KeyHook(_tabPageUIState);
+            KeyHook_SoundPlay keyHook = new KeyHook_SoundPlay(_tabPageUIState);
             Application.Run(new Form1(_tabPageUIState));
         }
     }
