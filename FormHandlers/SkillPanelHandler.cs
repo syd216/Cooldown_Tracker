@@ -1,27 +1,18 @@
-﻿using Cooldown_Tracker.UIStates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.CS_JSON;
+using Cooldown_Tracker.UIStates;
 
 namespace Cooldown_Tracker.FormHandlers
 {
     public class SkillPanelHandler
     {
+        // default values
+        int xOffset = 178, yOffset = 198;
+
         // requires currently focused tab page and list of panels in the tab page
         public Panel AddSkill(TabPage tabPage, List<Panel> skillPanels)
         {
             // PANEL
-            int xSpacing = 178;
-            int ySpacing = 200;
-
-            int col = skillPanels.Count / 2;
-            int row = skillPanels.Count % 2;
-
-            Point scrollOffset = tabPage.AutoScrollPosition;
-
             Point final_point = PanelPositioning(tabPage, skillPanels);
 
             Panel panel = new Panel
@@ -35,11 +26,10 @@ namespace Cooldown_Tracker.FormHandlers
             skillPanels.Add(panel);
             // PANEL
 
-            Console.WriteLine(skillPanels.Count);
-
             // TEXT BOXES
             TextBox TB_SkillName = new TextBox
             {
+                Name = "TB_SkillName",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 3),
@@ -48,6 +38,7 @@ namespace Cooldown_Tracker.FormHandlers
 
             TextBox TB_Key = new TextBox
             {
+                Name = "TB_Key",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 32),
@@ -55,6 +46,7 @@ namespace Cooldown_Tracker.FormHandlers
 
             TextBox TB_Time = new TextBox
             {
+                Name = "TB_Time",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 61),
@@ -62,6 +54,7 @@ namespace Cooldown_Tracker.FormHandlers
 
             TextBox TB_SFXPath = new TextBox
             {
+                Name = "TB_SFXPath",
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 90),
@@ -97,6 +90,8 @@ namespace Cooldown_Tracker.FormHandlers
                 Height = 23,
                 Text = "Set",
             };
+            BTN_SFXPath.Click += BTN_SFXPath_Click;
+            BTN_SFXPath.Tag = TB_SFXPath;
 
             Button BTN_Delete = new Button
             {
@@ -107,11 +102,143 @@ namespace Cooldown_Tracker.FormHandlers
                 Text = "Delete",
             };
             BTN_Delete.Click += BTN_Delete_Click;
-            BTN_Delete.Tag = new SkillPanelContext
+
+            // SET CONTEXT CS TO PANEL TAG 
+            panel.Tag = new ContextSkillPanel
             {
-                CurrentTabPage = tabPage,
-                CurrentPanel = panel,
-                CurrentPanelList = skillPanels
+                ParentTabPage = tabPage,
+                SkillPanel = panel,
+                SkillNameTextBox = TB_SkillName,
+                SkillKeyTextBox = TB_Key,
+                SkillTimeTextBox = TB_Time,
+                SkillSFXPathTextBox = TB_SFXPath,
+                SkillPanelList = skillPanels
+            };
+            // BUTTONS
+
+            panel.Controls.Add(TB_SkillName);
+            panel.Controls.Add(TB_Key);
+            panel.Controls.Add(TB_Time);
+            panel.Controls.Add(TB_SFXPath);
+
+            panel.Controls.Add(LBL_SkillName);
+            panel.Controls.Add(LBL_Key);
+            panel.Controls.Add(LBL_Time);
+
+            panel.Controls.Add(BTN_SFXPath);
+            panel.Controls.Add(BTN_Delete);
+
+            return panel;
+        }
+
+        // requires currently focused tab page and list of panels in the tab page
+        public Panel AddSkillFromJSON(TabPage tabPage, List<Panel> skillPanels, JSON_SkillData skill)
+        {
+            // PANEL
+            Point final_point = PanelPositioning(tabPage, skillPanels);
+
+            Panel panel = new Panel
+            {
+                Width = 161,
+                Height = 150,
+                Location = final_point,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            skillPanels.Add(panel);
+            // PANEL
+
+            // TEXT BOXES
+            TextBox TB_SkillName = new TextBox
+            {
+                Name = "TB_SkillName",
+                Text = skill.SkillName,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 3),
+                BackColor = Color.Silver
+            };
+
+            TextBox TB_Key = new TextBox
+            {
+                Name = "TB_Key",
+                Text = skill.SkillKey,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 32),
+            };
+
+            TextBox TB_Time = new TextBox
+            {
+                Name = "TB_Time",
+                Text = skill.SkillTime,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 61),
+            };
+
+            TextBox TB_SFXPath = new TextBox
+            {
+                Name = "TB_SFXPath",
+                Text = skill.SkillSFXPath,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 90),
+            };
+            // TEXT BOXES
+
+            // LABELS
+            Label LBL_SkillName = new Label
+            {
+                Text = "Skill",
+                Location = new Point(111, TB_SkillName.Location.Y),
+            };
+
+            Label LBL_Key = new Label
+            {
+                Text = "Key",
+                Location = new Point(111, TB_Key.Location.Y),
+            };
+
+            Label LBL_Time = new Label
+            {
+                Text = "Time (s)",
+                Location = new Point(111, TB_Time.Location.Y),
+            };
+            // LABELS
+
+            // BUTTONS
+            Button BTN_SFXPath = new Button
+            {
+                Name = "BTN_SFXPath",
+                Location = new Point(108, TB_SFXPath.Location.Y),
+                Width = 45,
+                Height = 23,
+                Text = "Set",
+            };
+            BTN_SFXPath.Click += BTN_SFXPath_Click;
+            BTN_SFXPath.Tag = TB_SFXPath;
+
+            Button BTN_Delete = new Button
+            {
+                Name = "BTN_Delete",
+                Location = new Point(3, 119),
+                Width = 100,
+                Height = 23,
+                Text = "Delete",
+            };
+            BTN_Delete.Click += BTN_Delete_Click;
+
+            // SET CONTEXT CS TO PANEL TAG 
+            panel.Tag = new ContextSkillPanel
+            {
+                ParentTabPage = tabPage,
+                SkillPanel = panel,
+                SkillNameTextBox = TB_SkillName,
+                SkillKeyTextBox = TB_Key,
+                SkillTimeTextBox = TB_Time,
+                SkillSFXPathTextBox = TB_SFXPath,
+                SkillPanelList = skillPanels
             };
             // BUTTONS
 
@@ -132,8 +259,8 @@ namespace Cooldown_Tracker.FormHandlers
 
         private Point PanelPositioning(TabPage tabPage, List<Panel> skillPanels)
         {
-            int xSpacing = 178;
-            int ySpacing = 200;
+            int xSpacing = xOffset;
+            int ySpacing = yOffset;
 
             int col = skillPanels.Count / 2;
             int row = skillPanels.Count % 2;
@@ -149,8 +276,8 @@ namespace Cooldown_Tracker.FormHandlers
 
         private Point PanelRepositioning(TabPage tabPage, Panel panel, List<Panel> skillPanels)
         {
-            int xSpacing = 178;
-            int ySpacing = 200;
+            int xSpacing = xOffset;
+            int ySpacing = yOffset;
 
             int currentIndex = skillPanels.IndexOf(panel); // must be the panel in the updated list
 
@@ -171,17 +298,43 @@ namespace Cooldown_Tracker.FormHandlers
         {
             if (sender is not Button btn) { return; }
 
-            if (btn.Tag is SkillPanelContext context)
+            if (btn.Parent is Panel panel)
             {
-                context.CurrentPanelList.Remove(context.CurrentPanel);
-                context.CurrentPanel.Dispose();
-
-                foreach (Panel p in context.CurrentPanelList)
+                if (panel.Tag is ContextSkillPanel context)
                 {
-                    p.Location = PanelRepositioning(
-                        context.CurrentTabPage,
-                        p,
-                        context.CurrentPanelList);
+                    // remove the current panel from the form and list
+                    context.SkillPanelList.Remove(context.SkillPanel);
+                    context.SkillPanel.Dispose();
+
+                    foreach (Panel p in context.SkillPanelList)
+                    {
+                        p.Location = PanelRepositioning(
+                            context.ParentTabPage,
+                            p,
+                            context.SkillPanelList);
+                    }
+                }
+            }
+        }
+
+        private void BTN_SFXPath_Click(object? sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    ofd.Title = "Select Audio File";
+                    ofd.Filter = "Audio Files (*.wav;*.mp3;*.ogg)|*.wav;*.mp3;*.ogg|All Files (*.*)|*.*";
+                    ofd.Multiselect = false;
+
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        string filePath = ofd.FileName;
+                        if (btn.Tag is TextBox textBox)
+                        {
+                            textBox.Text = filePath;
+                        }
+                    }
                 }
             }
         }
