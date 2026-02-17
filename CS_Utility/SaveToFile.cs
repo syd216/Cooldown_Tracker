@@ -1,5 +1,4 @@
-﻿
-using Cooldown_Tracker.CS_Contexts;
+﻿using Cooldown_Tracker.CS_Contexts;
 using Cooldown_Tracker.CS_JSON;
 using Cooldown_Tracker.UIStates;
 using System.Text.Json;
@@ -10,7 +9,7 @@ namespace Cooldown_Tracker.CS_Utility
     {
         public void WriteToFile(List<TabPage> tabPages, TabPageUIState tabPageUIState)
         {
-            String outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "save.json");
+            String outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cooldown_Tracker_Data.json");
 
             List<JSON_CharacterData> characters = new List<JSON_CharacterData>();
 
@@ -29,12 +28,12 @@ namespace Cooldown_Tracker.CS_Utility
                     {
                         if (c.Tag is ContextSkillPanel csp)
                         {
-                            character.Skills.Add(new JSON_SkillsData
+                            character.Skills.Add(new JSON_SkillData
                             {
                                 SkillName = csp.SkillNameTextBox.Text,
                                 SkillKey = csp.SkillKeyTextBox.Text,
                                 SkillTime = csp.SkillTimeTextBox.Text,
-                                SKillSFXPath = csp.SkillSFXPathTextBox.Text
+                                SkillSFXPath = csp.SkillSFXPathTextBox.Text
                             });
                         }
                     }
@@ -48,7 +47,7 @@ namespace Cooldown_Tracker.CS_Utility
                 WriteIndented = true
             });
 
-            Console.WriteLine(json);
+            File.WriteAllText(outputPath, json);
 
             // ContextSkillPanel.cs variables
             // public required TabPage ParentTabPage { get; set; }

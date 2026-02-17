@@ -1,6 +1,9 @@
-﻿using Cooldown_Tracker.UIStates;
+﻿using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.CS_Utility;
+using Cooldown_Tracker.UIStates;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using NAudio.Wave;
 
 namespace Cooldown_Tracker
 {
@@ -11,11 +14,16 @@ namespace Cooldown_Tracker
         private LowLevelKeyboardProc _proc;
         private IntPtr _hookID = IntPtr.Zero;
 
-        readonly TabPageUIState _tabUIState;
+        // TabPageUIState required here as keyhook needs the panel properties to 
+        // properly play sounds and delay them
+        readonly TabPageUIState _tabPageUIState;
+
+        // SOUND HANDLING
+        private Dictionary<String, Task> _activeDelayedTasks = new Dictionary<string, Task>();
 
         public KeyHook(TabPageUIState tabUIState)
         {
-            _tabUIState = tabUIState;
+            _tabPageUIState = tabUIState;
 
             _proc = HookCallback;
             _hookID = SetHook(_proc);
@@ -39,19 +47,71 @@ namespace Cooldown_Tracker
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                string keyName = ((Keys)vkCode).ToString(); // send read key to string
-                Console.WriteLine(keyName);
-                CheckKeys();
+                CheckKeys(((Keys)vkCode).ToString());// send read key to string
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        private void CheckKeys()
+        // begin awaited async functions if matched key
+        private async void CheckKeys(string pressedKey)
         {
-            if (_tabUIState.panelsByTabPageDict.Keys.Count > 0)
+            if (_tabPageUIState.panelsByTabPageDict.Keys.Count > 0)
             {
-                Console.WriteLine("CAN CHECK");
+                foreach (String key in _tabPageUIState.panelsByTabPageDict.Keys)
+                {
+                    foreach (Panel p in _tabPageUIState.panelsByTabPageDict[key])
+                    {
+                        if (p.Tag is ContextSkillPanel csp)
+                        {
+                            if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey)
+                            {
+                                await PrintAfterDelay(
+                                    Convert.ToInt32(csp.SkillTimeTextBox.Text), 
+                                    pressedKey,
+                                    csp.SkillSFXPathTextBox.Text);
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        private async Task PrintAfterDelay(int delayMs, string key, string sfxPath)
+        {
+            // this is how the program prevents the same skill from being called multiple times
+            // if, in a dictionary, it contains the key/name of the skill --> return
+            if (_activeDelayedTasks.ContainsKey(key)){ return; }
+
+            // if not, create a new task and add it to that dictionary as it runs
+            var task = InternalDelay(key, delayMs);
+            _activeDelayedTasks[key] = task;
+
+            await task;
+
+            // after the delay, play the sound
+            var audioFile = new AudioFileReader(sfxPath);
+            var outputDevice = new WaveOutEvent();
+
+            outputDevice.Init(audioFile);
+            outputDevice.Play();
+
+            // this just executes the sound player as another async task
+            // _ is a generic throw away variable declaration
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay((int)audioFile.TotalTime.TotalMilliseconds);
+                outputDevice.Dispose();
+                audioFile.Dispose();
+            });
+
+            // after it has returned, remove it from that dictionary and the skill is available again
+            _activeDelayedTasks.Remove(key);
+            Console.WriteLine($"PRESSED AFTER DELAY: {key} ({delayMs} S)");
+        }
+
+        private async Task InternalDelay(String key, int delayMs)
+        {
+            await Task.Delay(delayMs * 1000);
         }
 
         // WINDOW DLL IMPORTS

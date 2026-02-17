@@ -5,6 +5,6 @@ namespace Cooldown_Tracker.CS_JSON
     {
         // to be initialized and finalized in SaveToFile.cs
         public required string CharacterName { get; set; }
-        public List<JSON_SkillsData> Skills { get; set; } = new(); 
+        public List<JSON_SkillData> Skills { get; set; } = new(); 
     }
 }

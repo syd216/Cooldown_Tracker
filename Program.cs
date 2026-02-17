@@ -4,6 +4,8 @@ namespace Cooldown_Tracker
 {
     class Program
     {
+        // TabPageUIState instance must be created here as the KeyHook also needs to be aware of each panel
+        // It will process the key pressed, then each property of that skill from its cooldown, sound file, etc.
         static TabPageUIState _tabPageUIState = new TabPageUIState();
 
         [STAThread]

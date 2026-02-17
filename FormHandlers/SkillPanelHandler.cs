@@ -1,4 +1,5 @@
 ﻿using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.CS_JSON;
 using Cooldown_Tracker.UIStates;
 
 namespace Cooldown_Tracker.FormHandlers
@@ -54,6 +55,132 @@ namespace Cooldown_Tracker.FormHandlers
             TextBox TB_SFXPath = new TextBox
             {
                 Name = "TB_SFXPath",
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 90),
+            };
+            // TEXT BOXES
+
+            // LABELS
+            Label LBL_SkillName = new Label
+            {
+                Text = "Skill",
+                Location = new Point(111, TB_SkillName.Location.Y),
+            };
+
+            Label LBL_Key = new Label
+            {
+                Text = "Key",
+                Location = new Point(111, TB_Key.Location.Y),
+            };
+
+            Label LBL_Time = new Label
+            {
+                Text = "Time (s)",
+                Location = new Point(111, TB_Time.Location.Y),
+            };
+            // LABELS
+
+            // BUTTONS
+            Button BTN_SFXPath = new Button
+            {
+                Name = "BTN_SFXPath",
+                Location = new Point(108, TB_SFXPath.Location.Y),
+                Width = 45,
+                Height = 23,
+                Text = "Set",
+            };
+            BTN_SFXPath.Click += BTN_SFXPath_Click;
+            BTN_SFXPath.Tag = TB_SFXPath;
+
+            Button BTN_Delete = new Button
+            {
+                Name = "BTN_Delete",
+                Location = new Point(3, 119),
+                Width = 100,
+                Height = 23,
+                Text = "Delete",
+            };
+            BTN_Delete.Click += BTN_Delete_Click;
+
+            // SET CONTEXT CS TO PANEL TAG 
+            panel.Tag = new ContextSkillPanel
+            {
+                ParentTabPage = tabPage,
+                SkillPanel = panel,
+                SkillNameTextBox = TB_SkillName,
+                SkillKeyTextBox = TB_Key,
+                SkillTimeTextBox = TB_Time,
+                SkillSFXPathTextBox = TB_SFXPath,
+                SkillPanelList = skillPanels
+            };
+            // BUTTONS
+
+            panel.Controls.Add(TB_SkillName);
+            panel.Controls.Add(TB_Key);
+            panel.Controls.Add(TB_Time);
+            panel.Controls.Add(TB_SFXPath);
+
+            panel.Controls.Add(LBL_SkillName);
+            panel.Controls.Add(LBL_Key);
+            panel.Controls.Add(LBL_Time);
+
+            panel.Controls.Add(BTN_SFXPath);
+            panel.Controls.Add(BTN_Delete);
+
+            return panel;
+        }
+
+        // requires currently focused tab page and list of panels in the tab page
+        public Panel AddSkillFromJSON(TabPage tabPage, List<Panel> skillPanels, JSON_SkillData skill)
+        {
+            // PANEL
+            Point final_point = PanelPositioning(tabPage, skillPanels);
+
+            Panel panel = new Panel
+            {
+                Width = 161,
+                Height = 150,
+                Location = final_point,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            skillPanels.Add(panel);
+            // PANEL
+
+            // TEXT BOXES
+            TextBox TB_SkillName = new TextBox
+            {
+                Name = "TB_SkillName",
+                Text = skill.SkillName,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 3),
+                BackColor = Color.Silver
+            };
+
+            TextBox TB_Key = new TextBox
+            {
+                Name = "TB_Key",
+                Text = skill.SkillKey,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 32),
+            };
+
+            TextBox TB_Time = new TextBox
+            {
+                Name = "TB_Time",
+                Text = skill.SkillTime,
+                Width = 100,
+                Height = 23,
+                Location = new Point(3, 61),
+            };
+
+            TextBox TB_SFXPath = new TextBox
+            {
+                Name = "TB_SFXPath",
+                Text = skill.SkillSFXPath,
                 Width = 100,
                 Height = 23,
                 Location = new Point(3, 90),

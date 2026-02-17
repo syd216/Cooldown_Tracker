@@ -1,8 +1,10 @@
 using Cooldown_Tracker.CS_Contexts;
+using Cooldown_Tracker.CS_JSON;
 using Cooldown_Tracker.CS_Utility;
 using Cooldown_Tracker.FormHandlers;
 using Cooldown_Tracker.Properties;
 using Cooldown_Tracker.UIStates;
+using System.Configuration;
 using System.Runtime.InteropServices;
 
 namespace Cooldown_Tracker
@@ -24,6 +26,10 @@ namespace Cooldown_Tracker
         {
             AllocConsole();
             InitializeComponent();
+
+            // allows key reading at the form before the controls can
+            // used in OnKeyDown function
+            this.KeyPreview = true;
 
             _tabPageUIState = tabPageUIState;
 
@@ -57,6 +63,34 @@ namespace Cooldown_Tracker
             trayIcon.ContextMenuStrip = trayMenu;
             trayIcon.DoubleClick += TrayIcon_DoubleClick;
             // SETUP APPLICATION TRAY ICON
+
+            // LOAD CHARACTER DATA FROM JSON
+            LoadJSON();
+            // LOAD CHARACTER DATA FROM JSON
+        }
+
+        private void LoadJSON()
+        {
+            Dictionary<String, List<JSON_SkillData>> loadedData = new GetFromFile().LoadJson();
+
+            int tabPageIndex = 0;
+            foreach (string characterName in loadedData.Keys)
+            {
+                _tabPageUIState.panelsByTabPageDict.Add(characterName, new List<Panel>());
+                _tabPanelHandler.AddTabPanel(characterName, tabControl1);
+
+                foreach (JSON_SkillData skill in loadedData[characterName])
+                {
+                    Panel skillPanel = _skillPanelHandler.AddSkillFromJSON(
+                        tabControl1.TabPages[tabPageIndex],
+                        _tabPageUIState.panelsByTabPageDict[characterName],
+                        skill);
+
+                    tabControl1.TabPages[tabPageIndex].Controls.Add(skillPanel);
+                }
+
+                tabPageIndex++;
+            }
         }
 
         [DllImport("kernel32.dll")]
@@ -163,6 +197,22 @@ namespace Cooldown_Tracker
             }
 
             _saveToFile.WriteToFile(tabPages, _tabPageUIState);
+        }
+
+        // since KeyPreview = true, this can run before any other control can utilize the key press
+        // there is no way to unfocus a textbox, so use escape to unfocus from textbox
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.ActiveControl = null;
+
+                // suppress ding sound from escape key being pressed
+                e.Handled = true; // means the key was processed
+                e.SuppressKeyPress = true; // prevents system notification sound
+            }
+
+            base.OnKeyDown(e);
         }
     }
 }
