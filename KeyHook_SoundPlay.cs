@@ -55,20 +55,26 @@ namespace Cooldown_Tracker
         // begin awaited async functions if matched key
         private async void CheckKeys(string pressedKey)
         {
-            if (_tabPageUIState.panelsByTabPageDict.Keys.Count > 0)
+            if (_tabPageUIState.panelsByTabPageDict.Keys.Count > 0 && _tabPageUIState.CurrentTabPage != null)
             {
-                foreach (String key in _tabPageUIState.panelsByTabPageDict.Keys)
+                foreach (String characterName in _tabPageUIState.panelsByTabPageDict.Keys)
                 {
-                    foreach (Panel p in _tabPageUIState.panelsByTabPageDict[key])
+                    // check if the key aligns with the currently selected tab page (character)
+                    if (characterName == _tabPageUIState.CurrentTabPage.Name)
                     {
-                        if (p.Tag is ContextSkillPanel csp)
+                        // for each skill in that character tab page
+                        foreach (Panel p in _tabPageUIState.panelsByTabPageDict[characterName])
                         {
-                            if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey)
+                            if (p.Tag is ContextSkillPanel csp)
                             {
-                                await PrintAfterDelay(
-                                    Convert.ToInt32(csp.SkillTimeTextBox.Text), 
-                                    pressedKey,
-                                    csp.SkillSFXPathTextBox.Text);
+                                // if the current key matches the iterated skill key 
+                                if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey)
+                                {
+                                    await PrintAfterDelay(
+                                        Convert.ToInt32(csp.SkillTimeTextBox.Text),
+                                        pressedKey,
+                                        csp.SkillSFXPathTextBox.Text);
+                                }
                             }
                         }
                     }
@@ -76,15 +82,15 @@ namespace Cooldown_Tracker
             }
         }
 
-        private async Task PrintAfterDelay(int delayMs, string key, string sfxPath)
+        private async Task PrintAfterDelay(int delayMs, string characterName, string sfxPath)
         {
             // this is how the program prevents the same skill from being called multiple times
             // if, in a dictionary, it contains the key/name of the skill --> return
-            if (_activeDelayedTasks.ContainsKey(key)){ return; }
+            if (_activeDelayedTasks.ContainsKey(characterName)){ return; }
 
             // if not, create a new task and add it to that dictionary as it runs
-            var task = InternalDelay(key, delayMs);
-            _activeDelayedTasks[key] = task;
+            var task = InternalDelay(characterName, delayMs);
+            _activeDelayedTasks[characterName] = task;
 
             await task;
 
@@ -105,8 +111,8 @@ namespace Cooldown_Tracker
             });
 
             // after it has returned, remove it from that dictionary and the skill is available again
-            _activeDelayedTasks.Remove(key);
-            Console.WriteLine($"PRESSED AFTER DELAY: {key} ({delayMs} S)");
+            _activeDelayedTasks.Remove(characterName);
+            Console.WriteLine($"PRESSED AFTER DELAY: {characterName} ({delayMs} S)");
         }
 
         private async Task InternalDelay(String key, int delayMs)

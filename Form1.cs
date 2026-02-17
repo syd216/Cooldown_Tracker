@@ -91,6 +91,9 @@ namespace Cooldown_Tracker
 
                 tabPageIndex++;
             }
+
+            _contextCharacters.CurrentTabPage = tabControl1.TabPages[tabControl1.TabCount - 1];
+            _tabPageUIState.CurrentTabPage = tabControl1.TabPages[tabControl1.TabCount - 1];
         }
 
         [DllImport("kernel32.dll")]
@@ -154,7 +157,10 @@ namespace Cooldown_Tracker
 
                 // current index is equal to the amount of tabs minus one. Therefore set current tab to the new tab
                 index = tabControl1.TabCount - 1;
+
+                // set current tab page variables (yes there is two, one for UI logic and KeyHook_SoundPlay)
                 _contextCharacters.CurrentTabPage = tabControl1.TabPages[index];
+                _tabPageUIState.CurrentTabPage = tabControl1.TabPages[index]; 
 
                 // make sure internal tab list tracker has a new list for panels every time a new tab page is made
                 while (_tabPageUIState.panelsByTabPageDict.Count <= index)
@@ -170,6 +176,7 @@ namespace Cooldown_Tracker
             if (tabControl1.TabCount > 0)
             {
                 _contextCharacters.CurrentTabPage = tabControl1.TabPages[tabControl1.SelectedIndex];
+                _tabPageUIState.CurrentTabPage = tabControl1.TabPages[tabControl1.SelectedIndex];
             }
         }
 
