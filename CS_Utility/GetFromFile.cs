@@ -37,5 +37,25 @@ namespace Cooldown_Tracker.CS_Utility
 
             return loadedData;
         }
+
+        public String LoadSettings()
+        {
+            String settingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings");
+            String settings = "";
+
+            if (File.Exists(settingsPath))
+            {
+                settings = File.ReadAllText(settingsPath);
+            }
+            else
+            {
+                // [0] is minimize to icon tray checkbox, [1] is edit mode checkbox
+                // value of 0 is false, value of 1 is true (11 = true true, 10 = true false)
+                File.WriteAllText(settingsPath, "11");
+                settings = File.ReadAllText(settingsPath);
+            }
+
+            return settings;
+        }
     }
 }

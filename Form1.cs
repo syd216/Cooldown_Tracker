@@ -24,7 +24,7 @@ namespace Cooldown_Tracker
 
         public Form1(TabPageUIState tabPageUIState)
         {
-            AllocConsole();
+            //AllocConsole();
             InitializeComponent();
 
             // allows key reading at the form before the controls can
@@ -65,8 +65,15 @@ namespace Cooldown_Tracker
             // SETUP APPLICATION TRAY ICON
 
             // LOAD CHARACTER DATA FROM JSON
-            LoadJSON();
+            if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cooldown_Tracker_Data.json")))
+            {
+                LoadJSON();
+            }
             // LOAD CHARACTER DATA FROM JSON
+
+            // LOAD SETTINGS STATE FROM FILE 
+            ApplySettings(); // whether or not this exists gets handled in GetFromFile.cs
+            // LOAD SETTINGS STATE FROM FILE
         }
 
         private void LoadJSON()
@@ -94,6 +101,21 @@ namespace Cooldown_Tracker
 
             _contextCharacters.CurrentTabPage = tabControl1.TabPages[tabControl1.TabCount - 1];
             _tabPageUIState.CurrentTabPage = tabControl1.TabPages[tabControl1.TabCount - 1];
+        }
+
+        private void ApplySettings()
+        {
+            String loadedData = new GetFromFile().LoadSettings();
+
+            if (loadedData[0] == '1') { iconTrayCheck.Checked = true; }
+            else { iconTrayCheck.Checked = false; }
+
+            if (loadedData[1] == '1') { editModeCheck.Checked = true; }
+            else
+            {
+                editModeCheck.Checked = false;
+                EditModeEvent(editModeCheck.Checked);
+            }
         }
 
         [DllImport("kernel32.dll")]
@@ -160,7 +182,7 @@ namespace Cooldown_Tracker
 
                 // set current tab page variables (yes there is two, one for UI logic and KeyHook_SoundPlay)
                 _contextCharacters.CurrentTabPage = tabControl1.TabPages[index];
-                _tabPageUIState.CurrentTabPage = tabControl1.TabPages[index]; 
+                _tabPageUIState.CurrentTabPage = tabControl1.TabPages[index];
 
                 // make sure internal tab list tracker has a new list for panels every time a new tab page is made
                 while (_tabPageUIState.panelsByTabPageDict.Count <= index)
@@ -220,6 +242,40 @@ namespace Cooldown_Tracker
             }
 
             base.OnKeyDown(e);
+        }
+
+        private void iconTrayCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSettings(0, iconTrayCheck.Checked);
+        }
+
+        // whether or not the program is allowed to read inputs/main process
+        private void editModeCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            EditModeEvent(editModeCheck.Checked);
+            UpdateSettings(1, editModeCheck.Checked);
+            
+        }
+
+        private void UpdateSettings(int index, bool isChecked)
+        {
+            _saveToFile.WriteToSettings(
+                index, 
+                isChecked ? '1' : '0');
+        }
+
+        private void EditModeEvent(bool check)
+        {
+            if (!check)
+            {
+                _tabPageUIState.IsTabActive = true;
+                tabControl1.Enabled = false;
+            }
+            else
+            {
+                _tabPageUIState.IsTabActive = false;
+                tabControl1.Enabled = true;
+            }
         }
     }
 }

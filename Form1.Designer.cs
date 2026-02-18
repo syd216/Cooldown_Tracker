@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
+            editModeCheck = new CheckBox();
             label1 = new Label();
             iconTrayCheck = new CheckBox();
             tabControl1 = new TabControl();
@@ -43,12 +44,24 @@
             // panel1
             // 
             panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(editModeCheck);
             panel1.Controls.Add(label1);
             panel1.Controls.Add(iconTrayCheck);
             panel1.Location = new Point(575, 320);
             panel1.Name = "panel1";
             panel1.Size = new Size(217, 118);
             panel1.TabIndex = 0;
+            // 
+            // editModeCheck
+            // 
+            editModeCheck.AutoSize = true;
+            editModeCheck.Location = new Point(3, 28);
+            editModeCheck.Name = "editModeCheck";
+            editModeCheck.Size = new Size(80, 19);
+            editModeCheck.TabIndex = 2;
+            editModeCheck.Text = "Edit Mode";
+            editModeCheck.UseVisualStyleBackColor = true;
+            editModeCheck.CheckedChanged += editModeCheck_CheckedChanged;
             // 
             // label1
             // 
@@ -69,6 +82,7 @@
             iconTrayCheck.TabIndex = 0;
             iconTrayCheck.Text = "Minimize to Icon Tray";
             iconTrayCheck.UseVisualStyleBackColor = true;
+            iconTrayCheck.CheckedChanged += iconTrayCheck_CheckedChanged;
             // 
             // tabControl1
             // 
@@ -147,10 +161,10 @@
         private Label label1;
         private CheckBox iconTrayCheck;
         private TabControl tabControl1;
-        private Button AddButton;
         private Button SaveButton;
         private Button AddCharacterButton;
         private Button DeleteCharacterButton;
         private Button AddSkillButton;
+        private CheckBox editModeCheck;
     }
 }

@@ -56,5 +56,32 @@ namespace Cooldown_Tracker.CS_Utility
             // public required TextBox SkillNameTextBox { get; set; }
             // public required List<Panel> SkillPanelList { get; set; }
         }
+
+        public void WriteToSettings(int index, char state)
+        {
+            String settingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings");
+            String toFile = "";
+
+            if (File.Exists(settingsPath))
+            {
+                String oldSettings = File.ReadAllText(settingsPath);
+
+                char[] newSettings = oldSettings.ToCharArray();
+                newSettings[index] = state;
+
+                toFile = new String(newSettings);
+            }
+            else
+            {
+                String initSettings = "00";
+
+                char[] newSettings = initSettings.ToCharArray();
+                newSettings[index] = state;
+
+                toFile = new String(newSettings);
+            }
+
+            File.WriteAllText(settingsPath, toFile);
+        }
     }
 }
