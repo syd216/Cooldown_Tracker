@@ -65,7 +65,10 @@ namespace Cooldown_Tracker
             // SETUP APPLICATION TRAY ICON
 
             // LOAD CHARACTER DATA FROM JSON
-            LoadJSON();
+            if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cooldown_Tracker_Data.json")))
+            {
+                LoadJSON();
+            }
             // LOAD CHARACTER DATA FROM JSON
         }
 
