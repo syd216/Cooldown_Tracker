@@ -44,7 +44,8 @@ namespace Cooldown_Tracker
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            // check if edit mode is off here too
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN && _tabPageUIState.IsTabActive == true)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 CheckKeys(((Keys)vkCode).ToString());// send read key to string
@@ -68,11 +69,11 @@ namespace Cooldown_Tracker
                             if (p.Tag is ContextSkillPanel csp)
                             {
                                 // if the current key matches the iterated skill key 
-                                if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey)
+                                if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey.ToUpper())
                                 {
-                                    await PrintAfterDelay(
+                                    _ = PlaySoundAfterDelay(
                                         Convert.ToInt32(csp.SkillTimeTextBox.Text),
-                                        pressedKey,
+                                        csp.SkillNameTextBox.Text,
                                         csp.SkillSFXPathTextBox.Text);
                                 }
                             }
@@ -82,15 +83,15 @@ namespace Cooldown_Tracker
             }
         }
 
-        private async Task PrintAfterDelay(int delayMs, string characterName, string sfxPath)
+        private async Task PlaySoundAfterDelay(int delayMs, string skillName, string sfxPath)
         {
             // this is how the program prevents the same skill from being called multiple times
             // if, in a dictionary, it contains the key/name of the skill --> return
-            if (_activeDelayedTasks.ContainsKey(characterName)){ return; }
+            if (_activeDelayedTasks.ContainsKey(skillName)){ return; }
 
             // if not, create a new task and add it to that dictionary as it runs
-            var task = InternalDelay(characterName, delayMs);
-            _activeDelayedTasks[characterName] = task;
+            var task = InternalDelay(delayMs);
+            _activeDelayedTasks[skillName] = task;
 
             await task;
 
@@ -111,11 +112,11 @@ namespace Cooldown_Tracker
             });
 
             // after it has returned, remove it from that dictionary and the skill is available again
-            _activeDelayedTasks.Remove(characterName);
-            Console.WriteLine($"PRESSED AFTER DELAY: {characterName} ({delayMs} S)");
+            _activeDelayedTasks.Remove(skillName);
+            Console.WriteLine($"EXECUTED AFTER DELAY: {skillName} ({delayMs} S)");
         }
 
-        private async Task InternalDelay(String key, int delayMs)
+        private async Task InternalDelay(int delayMs)
         {
             await Task.Delay(delayMs * 1000);
         }

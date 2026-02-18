@@ -7,5 +7,6 @@
         // for example key1 = Character1Name, List<Panel> = all of its skills in that tab page
         public Dictionary<String, List<Panel>> panelsByTabPageDict { get; set; } = new();
         public TabPage? CurrentTabPage { get; set; }
+        public bool IsTabActive { get; set; }
     }
 }
