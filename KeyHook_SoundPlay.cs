@@ -1,9 +1,9 @@
 ﻿using Cooldown_Tracker.CS_Contexts;
-using Cooldown_Tracker.CS_Utility;
 using Cooldown_Tracker.UIStates;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NAudio.Wave;
+using Cooldown_Tracker.CS_AudioContainers;
 
 namespace Cooldown_Tracker
 {
@@ -19,7 +19,8 @@ namespace Cooldown_Tracker
         readonly TabPageUIState _tabPageUIState;
 
         // SOUND HANDLING
-        private Dictionary<String, Task> _activeDelayedTasks = new Dictionary<string, Task>();
+        private Dictionary<String, CancellationTokenSource> _activeCooldowns = new();
+        private Dictionary<String, AudioOutputContainer> _audioOutputContainers = new();
 
         public KeyHook_SoundPlay(TabPageUIState tabUIState)
         {
@@ -71,8 +72,18 @@ namespace Cooldown_Tracker
                                 // if the current key matches the iterated skill key 
                                 if (csp.SkillKeyTextBox.Text.ToUpper() == pressedKey.ToUpper())
                                 {
+                                    // throw away variable for playing the sound. These are executed async
+                                    // and handle sound playing/canellation itself
+                                    // input validation here too (only need to validate time and SkillSFXPath
+
+                                    bool validate_Time = int.TryParse(csp.SkillTimeTextBox.Text, out int time);
+                                    bool validate_Path = File.Exists(csp.SkillSFXPathTextBox.Text);
+
+                                    if (!validate_Time) { MessageBox.Show($"Invalid time input for skill: {csp.SkillNameTextBox.Text}"); return; }
+                                    if (!validate_Path) { MessageBox.Show($"Invalid SFX path input for skill: {csp.SkillNameTextBox.Text}"); return; }
+
                                     _ = PlaySoundAfterDelay(
-                                        Convert.ToInt32(csp.SkillTimeTextBox.Text),
+                                        time,
                                         csp.SkillNameTextBox.Text,
                                         csp.SkillSFXPathTextBox.Text);
                                 }
@@ -87,38 +98,59 @@ namespace Cooldown_Tracker
         {
             // this is how the program prevents the same skill from being called multiple times
             // if, in a dictionary, it contains the key/name of the skill --> return
-            if (_activeDelayedTasks.ContainsKey(skillName)){ return; }
-
-            // if not, create a new task and add it to that dictionary as it runs
-            var task = InternalDelay(delayMs);
-            _activeDelayedTasks[skillName] = task;
-
-            await task;
-
-            // after the delay, play the sound
-            var audioFile = new AudioFileReader(sfxPath);
-            var outputDevice = new WaveOutEvent();
-
-            outputDevice.Init(audioFile);
-            outputDevice.Play();
-
-            // this just executes the sound player as another async task
-            // _ is a generic throw away variable declaration
-            _ = Task.Run(async () =>
+            if (_activeCooldowns.ContainsKey(skillName))
             {
-                await Task.Delay((int)audioFile.TotalTime.TotalMilliseconds);
-                outputDevice.Dispose();
-                audioFile.Dispose();
-            });
+                _activeCooldowns[skillName].Cancel();
+                _activeCooldowns[skillName].Dispose();
+                _activeCooldowns.Remove(skillName);
 
-            // after it has returned, remove it from that dictionary and the skill is available again
-            _activeDelayedTasks.Remove(skillName);
-            Console.WriteLine($"EXECUTED AFTER DELAY: {skillName} ({delayMs} S)");
-        }
+                Console.WriteLine("Cooldown Cancelled");
+                return; 
+            }
 
-        private async Task InternalDelay(int delayMs)
-        {
-            await Task.Delay(delayMs * 1000);
+            // Create cancellation token
+            CancellationTokenSource cts = new CancellationTokenSource();
+            _activeCooldowns[skillName] = cts;
+
+            try
+            {
+                await Task.Delay(delayMs * 1000, cts.Token);
+
+                // if task is not yet cancelled, play sound
+                AudioOutputContainer AOU = new AudioOutputContainer
+                {
+                    audioFile = new AudioFileReader(sfxPath),
+                    outputDevice = new WaveOutEvent(),
+                };
+                _audioOutputContainers.Add(skillName, AOU);
+
+                AOU.outputDevice.Init(AOU.audioFile);
+                AOU.outputDevice.Play();
+
+                // pass event into outputDevice to cleanup itself after finishing playback
+                AOU.outputDevice.PlaybackStopped += (s, e) =>
+                {
+                    AOU.audioFile.Dispose();
+                    AOU.outputDevice.Dispose();
+                    _activeCooldowns.Remove(skillName);
+                    _audioOutputContainers.Remove(skillName);
+                };
+
+                Console.WriteLine($"EXECUTED AFTER DELAY: {skillName} ({delayMs} S)");
+            }
+            catch (TaskCanceledException) // if the CTS is cancelled in a new thread
+            {
+                // the previously created thread for this skill will move here
+                Console.WriteLine($"CANCELLED BEFORE EXECUTION: {skillName}");
+            }
+            finally
+            {
+                if (_activeCooldowns.ContainsKey(skillName))
+                {
+                    _activeCooldowns[skillName].Dispose();
+                    _activeCooldowns.Remove(skillName);
+                }
+            }
         }
 
         // WINDOW DLL IMPORTS
