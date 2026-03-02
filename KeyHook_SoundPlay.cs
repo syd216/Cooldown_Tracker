@@ -79,8 +79,8 @@ namespace Cooldown_Tracker
                                     bool validate_Time = int.TryParse(csp.SkillTimeTextBox.Text, out int time);
                                     bool validate_Path = File.Exists(csp.SkillSFXPathTextBox.Text);
 
-                                    if (!validate_Time) { MessageBox.Show($"Invalid time input for skill: {csp.SkillNameTextBox.Text}"); return; }
-                                    if (!validate_Path) { MessageBox.Show($"Invalid SFX path input for skill: {csp.SkillNameTextBox.Text}"); return; }
+                                    if (!validate_Time) { MessageBox.Show($"Invalid time input for skill: {csp.SkillNameTextBox.Text}", "Notice"); return; }
+                                    if (!validate_Path) { MessageBox.Show($"Invalid SFX path input for skill: {csp.SkillNameTextBox.Text}", "Notice"); return; }
 
                                     _ = PlaySoundAfterDelay(
                                         time,
