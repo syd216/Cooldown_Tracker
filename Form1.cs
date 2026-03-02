@@ -4,7 +4,6 @@ using Cooldown_Tracker.CS_Utility;
 using Cooldown_Tracker.FormHandlers;
 using Cooldown_Tracker.Properties;
 using Cooldown_Tracker.UIStates;
-using System.Configuration;
 using System.Runtime.InteropServices;
 
 namespace Cooldown_Tracker
@@ -185,6 +184,8 @@ namespace Cooldown_Tracker
                 _tabPageUIState.CurrentTabPage = tabControl1.TabPages[index];
 
                 // make sure internal tab list tracker has a new list for panels every time a new tab page is made
+                // TabPageHandler can detect whether a duplicate character is going to be made or not
+                // if a dupe is detected, that tab page will never be created; the following lines will be skipped since the count never changes
                 while (_tabPageUIState.panelsByTabPageDict.Count <= index)
                 {
                     _tabPageUIState.panelsByTabPageDict.Add(_contextCharacters.CurrentTabPage.Name, new List<Panel>());
