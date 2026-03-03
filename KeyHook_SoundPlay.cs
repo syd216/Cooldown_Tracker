@@ -96,25 +96,29 @@ namespace Cooldown_Tracker
 
         private async Task PlaySoundAfterDelay(int delayMs, string skillName, string sfxPath)
         {
-            // this is how the program prevents the same skill from being called multiple times
-            // if, in a dictionary, it contains the key/name of the skill --> return
+            // if the skill already exists in the dictionary, apply Cancel() to the CTS
             if (_activeCooldowns.ContainsKey(skillName))
             {
                 _activeCooldowns[skillName].Cancel();
                 _activeCooldowns[skillName].Dispose();
                 _activeCooldowns.Remove(skillName);
-
-                Console.WriteLine("Cooldown Cancelled");
-                return; 
             }
 
-            // Create cancellation token
-            CancellationTokenSource cts = new CancellationTokenSource();
-            _activeCooldowns[skillName] = cts;
+            // create cancellation token
+            CancellationTokenSource newCTS = new CancellationTokenSource();
+            _activeCooldowns[skillName] = newCTS;
 
             try
             {
-                await Task.Delay(delayMs * 1000, cts.Token);
+                await Task.Delay(delayMs * 1000, newCTS.Token);
+
+                // only continue if THIS instance is still the active one
+                // this works since if another keypress of the same skill is triggered, a new CTS under the same
+                // skillname will replace the old CTS. As this function runs async along with other PlaySoundAfterDelay() functions,
+                // it will realize that the dictionary key value in memory is different from what it was before, returning silently
+                // and allowing the new thread to continue normally
+                if (_activeCooldowns.TryGetValue(skillName, out var currentCts) && currentCts != newCTS)
+                    return;
 
                 // if task is not yet cancelled, play sound
                 AudioOutputContainer AOU = new AudioOutputContainer
@@ -145,10 +149,11 @@ namespace Cooldown_Tracker
             }
             finally
             {
-                if (_activeCooldowns.ContainsKey(skillName))
+                // only remove if this instance still owns the slot (ends the cooldown naturally)
+                if (_activeCooldowns.TryGetValue(skillName, out var currentCts) && currentCts == newCTS)
                 {
-                    _activeCooldowns[skillName].Dispose();
                     _activeCooldowns.Remove(skillName);
+                    newCTS.Dispose();
                 }
             }
         }
